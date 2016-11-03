@@ -65,7 +65,7 @@ async def response_factory(app,handler):
             resp = web.Response(body=r.encode('utf-8'))
             resp.content_type = 'text/html;charset=utf-8'
             return resp
-        if isinstance(r.dict):
+        if isinstance(r,dict):
             template = r.get('__template__')
             if template is None:
                 resp = web.Response(body=json.dumps(r,ensure_ascii=False,default=lambda o:o.__dict__).encode('utf-8'))
@@ -107,7 +107,7 @@ async def init(loop):
     await orm.create_pool(loop=loop,user='admin',password='admin123',db='gaoyu_test')
     app = web.Application(loop=loop,middlewares=[logger_factory,response_factory])
     init_jinja2(app,filters=dict(datetime=datetime_filter))
-    add_routes(app,'logging.handlers')
+    add_routes(app,'handlers')
     add_static(app)
     srv = await loop.create_server(app.make_handler(),'127.0.0.1',9000)
     logging.info('server started at http://127.0.0.1:9000...')
