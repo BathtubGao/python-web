@@ -176,11 +176,11 @@ class Model(dict,metaclass=ModelMetaclass):
             args = []
         orderBy = kw.get('orderBy',None)
         if orderBy:
-            sql.append('order by')
+            sql.append(' order by ')
             sql.append(orderBy)
         limit = kw.get('limit',None)
         if limit is not None:
-            sql.append('limit')
+            sql.append(' limit ')
             if isinstance(limit,int):
                 sql.append('?')
                 args.append(limit)
