@@ -2,12 +2,12 @@ __author__ = 'Bathtub'
 
 'url handlers'
 
-import re,time,json,logging,hashlib,base64,asyncio
+import re, time, json, logging, hashlib, base64, asyncio
 import markdown2
 from aiohttp import web
-from coroweb import get,post
-from apis import APIValueError, APIResourceNotFoundError
-from models import User,Comment,Blog,next_id
+from coroweb import get, post
+from apis import Page, APIValueError, APIPermissionError
+from models import User, Comment, Blog, next_id
 from config import configs
 
 COOKIE_NAME = 'awesession'
@@ -15,7 +15,7 @@ _COOKIE_KEY = configs.session.secret
 
 def check_admin(request):
     if request.__user__ is None or not request.__user__.admin:
-        raise
+        raise APIPermissionError()
 
 def get_page_index(page_str):
     p = 1
@@ -177,6 +177,13 @@ def api_register_user(*, email, name, passwd):
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
     return r
 
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__template__': 'manage_blogs.html',
+        'page_index': get_page_index(page)
+    }
+
 @get('/manage/blogs/create')
 def manage_create_blog():
     return {
@@ -203,3 +210,14 @@ def api_create_blog(request, *, name, summary, content):
                 name=name.strip(),summary=summary.strip(),content=content.strip())
     yield from blog.save()
     return blog
+
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blog=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
