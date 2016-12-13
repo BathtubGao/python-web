@@ -1,9 +1,9 @@
 __author__ = 'Bathtub Gao'
 
-import asyncio,os,inspect,logging,functools
+import asyncio, os, inspect, logging, functools
 from urllib import parse
 from aiohttp import web
-from apis import  APIError
+from apis import APIError
 
 def get(path):
     '''
@@ -72,7 +72,7 @@ def has_request_arg(fn):
     return found
 
 class RequestHandler(object):
-    def __init__(self,app,fn):
+    def __init__(self, app, fn):
         self._app = app
         self._func = fn
         self._has_request_arg = has_request_arg(fn)
@@ -82,7 +82,7 @@ class RequestHandler(object):
         self._required_kw_args = get_required_kw_args(fn)
 
     @asyncio.coroutine
-    def __call__(self,request):
+    def __call__(self, request):
         kw = None
         if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
             if request.method == 'POST':

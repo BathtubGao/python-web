@@ -91,7 +91,7 @@ def index(*, page='1'):
 @get('/blog/{id}')
 def get_blog(id):
     blog = yield from Blog.find(id)
-    comments = yield from Comment.findAll('blog_id=?', [id], orderVy='created_ad desc')
+    comments = yield from Comment.findAll('blog_id=?', [id], orderVy='created_at desc')
     for c in comments:
         c.html_content = text2html(c.content)
     blog.html_content = markdown2.markdown(blog.content)
@@ -178,6 +178,13 @@ def manage_create_blog():
         'action': '/api/blogs'
     }
 
+@get('/manage/blogs/edit')
+def manage_edit_blog(*, id):
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id': id,
+        'action': '/api/blogs/%s' % id
+    }
 
 @get('/manage/users')
 def manage_users(*, page='1'):
@@ -194,7 +201,7 @@ def api_comments(*, page='1'):
     p = Page(num, page_index)
     if num == 0:
         return dict(page=p, comments=())
-    comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offest, p.limit))
+    comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
     return dict(page=p, comments=comments)
 
 
@@ -224,9 +231,14 @@ def api_delete_comments(id,request):
     return dict(id=id)
 
 
-@get('/api/allUsers')
-async def api_get_users():
-    users = await User.findAll(orderBy='created_at desc')
+@get('/api/users')
+def api_get_users(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from User.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, users=())
+    users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
     for u in users:
         u.passwd = '******'
     return dict(users=users)

@@ -167,7 +167,7 @@ class Model(dict,metaclass=ModelMetaclass):
 
     @classmethod
     @asyncio.coroutine
-    def findAll(cls,where=None,args=None,**kw):
+    def findAll(cls, where=None, args=None, **kw):
         ' find objects by where clause. '
         sql = [cls.__select__]
         if where:
